@@ -19,6 +19,6 @@ datasources:
   default:
     driverClassName: org.postgresql.Driver
     url: ${DEV_DATABASE_URL:`jdbc:postgresql://localhost/kt_mn_example`}
-    username: ${DEV_DATABASE_USERNAME:}
-    password: ${DEV_DATABASE_PASSWORD:}
+    username: ${DEV_DATABASE_USERNAME:johndoe}
+    password: ${DEV_DATABASE_PASSWORD:secret}
 

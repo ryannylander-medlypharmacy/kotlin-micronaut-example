@@ -1,4 +1,4 @@
-#Kotlin Micronaut Example with Postgres
+## Example Micronaut API with Postgres. Written in Kotlin.
 
 ## Tech and tools used
 - Kotlin - for development
@@ -42,7 +42,9 @@ Also, you would need to setup Gradle JVM to 11.08
 ## Local setup:
 Required tools:
 1. Java 11.08
-2. Postgres server (by default, this project looks for a local instance called )
+2. Postgres server (by default, this project looks for a local Postgres instance called kt_mn_example)
+    a. The example credentials expect a user named 'johndoe' with password 'secret' to exist in your database. 
+        You can either create this user or create your own and change the credentials locally.
 3. sam cli
 
 ---

@@ -1,0 +1,5 @@
+openapi: 3.0.1
+info:
+  title: Example Micronaut API
+  description: Kotlin Micronaut Example with Postgres
+  version: "0.1"

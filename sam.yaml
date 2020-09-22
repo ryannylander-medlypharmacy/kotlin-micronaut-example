@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Example API - example::kotlin-micronaut-example
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    BinaryMediaTypes:
+      - "*~1*"
+Resources:
+  IbdApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: example.api.StreamLambdaHandler::handleRequest
+      Runtime: java8
+      CodeUri: application/build/distributions/kotlin-micronaut-example-0.1.zip
+      MemorySize: 512
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 90
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+
+Outputs:
+  IbdServiceApi:
+    Description: URL for application
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping'
+    Export:
+      Name: IbdServiceApi

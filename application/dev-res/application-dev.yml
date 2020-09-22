@@ -1,0 +1,11 @@
+micronaut:
+  application:
+    name: kotlin-micronaut-example
+  function:
+    name: kotlin-micronaut-example
+datasources:
+  default:
+    driverClassName: org.postgresql.Driver
+    url: ${DEV_DATABASE_URL:`jdbc:postgresql://localhost/kt_mn_example`}
+    username: ${DEV_DATABASE_USERNAME:postgres}
+    password: ${DEV_DATABASE_PASSWORD:}

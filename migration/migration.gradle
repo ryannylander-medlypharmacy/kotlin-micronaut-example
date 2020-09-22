@@ -1,0 +1,29 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation "org.liquibase:liquibase-core:4.0.0"
+    implementation "org.postgresql:postgresql:$postgresVersion"
+}
+
+applicationName = "example-db-migrate"
+
+mainClassName = "liquibase.integration.commandline.Main"
+
+run {
+    args "--driver=org.postgresql.Driver"
+    args "--url=jdbc:postgresql://localhost/kt_mn_example"
+    args "--username="
+    args "--password="
+    args "--changeLogFile=changelog.xml"
+    args 'update'
+}
+
+distributions {
+    main {
+        contents {
+            from('changelog')
+        }
+    }
+}

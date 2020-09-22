@@ -1,0 +1,24 @@
+micronaut:
+  server:
+    port: 9000
+    cors:
+      enabled: true
+  application:
+    name: kotlin-micronaut-example
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /open-api-specifications/**
+
+jackson:
+  serialization:
+    indent-output: true
+
+datasources:
+  default:
+    driverClassName: org.postgresql.Driver
+    url: ${DEV_DATABASE_URL:`jdbc:postgresql://localhost/kt_mn_example`}
+    username: ${DEV_DATABASE_USERNAME:}
+    password: ${DEV_DATABASE_PASSWORD:}
+

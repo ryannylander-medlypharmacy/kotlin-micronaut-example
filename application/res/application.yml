@@ -1,0 +1,14 @@
+micronaut:
+  application:
+    name: kotlin-micronaut-example
+  function:
+    name: kotlin-micronaut-example
+
+datasources:
+  default:
+    driverClassName: org.postgresql.Driver
+    ## URL must include database name (catalog in postgres terms)
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    leak-detection-threshold: 60000

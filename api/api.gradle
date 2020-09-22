@@ -1,0 +1,90 @@
+plugins {
+    id "application"
+}
+sourceSets.main.kotlin.srcDirs += "gen"
+sourceSets.main.resources.srcDirs += "spec"
+
+group 'example'
+version '0.1'
+
+mainClassName = "example.api.ApiApplication"
+
+configurations {
+    apifi
+}
+
+sourceSets {
+    devOnly {
+        kotlin.srcDirs = ['dev-src']
+        resources.srcDirs = ['dev-res']
+        java.srcDirs = [] // disable java devOnly dirs
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+dependencies {
+    compileOnly "org.graalvm.nativeimage:svm"
+    devOnly platform("io.micronaut:micronaut-bom:$micronautVersion")
+    devOnly "io.micronaut:micronaut-http-server-netty"
+
+    implementation project(":core")
+    implementation project(":connector:db")
+    implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+    implementation "io.micronaut:micronaut-http-client"
+    implementation("io.micronaut.aws:micronaut-function-aws-api-proxy") {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
+    implementation "com.amazonaws:aws-lambda-java-core:1.2.0"
+    implementation "com.amazonaws:aws-lambda-java-events:2.2.7"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    implementation 'io.micronaut:micronaut-security-jwt'
+    implementation "io.micronaut:micronaut-runtime"
+
+    apifi 'com.github.medly:apifi:v0.0.6'
+    runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
+    runtimeOnly "com.amazonaws:aws-lambda-java-log4j2:1.1.0"
+    runtimeOnly "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8"
+
+    testImplementation 'org.testcontainers:postgresql:1.14.0'
+    testImplementation "io.micronaut:micronaut-http-client:$micronautVersion"
+    testImplementation "io.micronaut:micronaut-http-server-netty:$micronautVersion"
+    testImplementation "org.postgresql:postgresql:$postgresVersion"
+    testImplementation 'postgresql:postgresql:9.1-901-1.jdbc4'
+    testImplementation "org.liquibase:liquibase-core:3.8.1"
+    testImplementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
+    testImplementation project(":core").sourceSets.test.output
+
+    implementation "io.swagger.core.v3:swagger-annotations"
+    kapt "io.micronaut.configuration:micronaut-openapi:$micronautVersion"
+
+    kapt platform("io.micronaut:micronaut-bom:$micronautVersion")
+    kapt "io.micronaut:micronaut-graal"
+    kapt "io.micronaut:micronaut-inject-java"
+    kapt "io.micronaut:micronaut-validation"
+    kapt 'io.micronaut:micronaut-security'
+    kaptDevOnly "io.micronaut:micronaut-inject-java"
+
+    kaptTest platform("io.micronaut:micronaut-bom:$micronautVersion")
+    kaptTest "io.micronaut:micronaut-inject-java"
+}
+
+tasks.withType(JavaExec) {
+    classpath += configurations.devOnly
+    classpath += sourceSets.devOnly.runtimeClasspath
+    jvmArgs('-noverify',
+            '-XX:TieredStopAtLevel=1',
+            '-Dcom.sun.management.jmxremote',
+            "-Dlogback.configurationFile=logback-dev.xml",
+            '-Dmicronaut.environments=dev')
+}
+
+task generate(type: JavaExec) {
+    classpath = configurations.apifi
+    main = "apifi.AppKt"
+    args "${rootProject.rootDir}/api/spec"
+    args "${rootProject.rootDir}/api/gen"
+    args "example.api"
+}
+
+run.dependsOn(":migration:run")

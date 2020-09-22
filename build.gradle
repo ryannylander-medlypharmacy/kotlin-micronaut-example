@@ -1,0 +1,172 @@
+buildscript {
+    ext {
+        micronautVersion = "1.3.5"
+        kotlinVersion = "1.3.72"
+        postgresVersion = "42.2.8"
+        testContainerVersion = "1.14.3"
+        kotestVersion = "4.1.3"
+        ktlintVersion = "9.3.0"
+    }
+
+    repositories {
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlintVersion"
+    }
+}
+
+plugins {
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
+    id "org.jetbrains.kotlin.kapt" version "$kotlinVersion"
+    id "jp.classmethod.aws.lambda" version "0.39"
+    id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion"
+    id "jacoco"
+    id "org.sonarqube" version "2.8"
+    id "org.jlleitschuh.gradle.ktlint" version "$ktlintVersion"
+}
+
+version "0.1"
+group "example"
+
+repositories {
+    mavenCentral()
+}
+
+sonarqube {
+    properties {
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.organization", "medly"
+        property "sonar.projectKey", "medlypharmacy_kotlin-micronaut-example"
+        property "sonar.verbose", true
+        property "sonar.projectName", "kotlin-micronaut-example"
+        property "sonar.exclusions", "**/gen/**, user/**, **/utils/**"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
+    }
+}
+
+subprojects {
+    apply(plugin: 'org.jetbrains.kotlin.jvm')
+    apply(plugin: 'org.jetbrains.kotlin.kapt')
+    apply(plugin: 'jacoco')
+    apply(plugin: 'org.jlleitschuh.gradle.ktlint')
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            url 'https://jitpack.io'
+        }
+    }
+
+    configurations {
+        devOnly
+    }
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+        implementation 'com.github.javafaker:javafaker:1.0.2'
+
+        // Testing
+        testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+        testImplementation "io.mockk:mockk:1.9.3"
+        testImplementation "io.micronaut.test:micronaut-test-kotest:1.2.2"
+        testImplementation "org.testcontainers:testcontainers:$testContainerVersion"
+        testImplementation "org.testcontainers:postgresql:$testContainerVersion"
+        testImplementation "io.kotest:kotest-runner-junit5-jvm:$kotestVersion"
+        testImplementation "io.kotest:kotest-assertions-core-jvm:$kotestVersion"
+        testImplementation "io.kotest:kotest-runner-console-jvm:$kotestVersion"
+        testImplementation "io.kotest:kotest-property-jvm:$kotestVersion"
+    }
+
+    sourceSets {
+        main.kotlin.srcDirs = ['src']
+        test.kotlin.srcDirs = ['test']
+        main.resources.srcDirs = ['res']
+        test.resources.srcDirs = ['test-res']
+        main.java.srcDirs = [] // disable java source dirs
+        test.java.srcDirs = [] // disable java test dirs
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "PASSED", "FAILED", "SKIPPED"
+            exceptionFormat "full"
+        }
+    }
+
+    test.classpath += configurations.devOnly
+
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = '11'
+            javaParameters = true
+        }
+    }
+
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = '11'
+            javaParameters = true
+        }
+    }
+
+    kapt { arguments { arg("micronaut.processing.incremental", true) } }
+
+    ktlint {
+        debug = true
+        verbose = true
+        outputToConsole = true
+        outputColorName = "RED"
+        filter {
+            exclude {
+                it.file.path.contains('/gen/')
+            }
+            exclude {
+                it.file.path.contains('/out/')
+            }
+        }
+    }
+
+}
+
+task codeCoverageReport(type: JacocoReport) {
+    // Gather execution data from all subprojects
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    // Add all relevant sourcesets from the subprojects
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        csv.enabled false
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['user/**',
+                              'example/**',
+                              '**/utils/**'     // Utility package
+                    ]
+            )
+        }))
+    }
+}
+
+// always run the tests before generating the report
+codeCoverageReport.dependsOn {
+    subprojects*.test
+}
+
+test.finalizedBy(codeCoverageReport)

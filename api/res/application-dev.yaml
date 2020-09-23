@@ -1,6 +1,6 @@
 micronaut:
   server:
-    port: 9000
+    port: 9091
     cors:
       enabled: true
   application:

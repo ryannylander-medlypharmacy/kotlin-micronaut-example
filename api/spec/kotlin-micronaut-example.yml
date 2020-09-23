@@ -3,3 +3,39 @@ info:
   title: Example Micronaut API
   description: Kotlin Micronaut Example with Postgres
   version: "0.1"
+paths:
+  /api/user/add:
+    post:
+      summary: Add a new user to the database.
+      description: Add a new user to the database.
+      operationId: onPostUser
+      parameters: []
+      requestBody:
+        description: the user to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      responses:
+        "200":
+          description: Add a new user to the database.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+components:
+  schemas:
+    UserResponse:
+      type: object
+    UserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string

@@ -32,8 +32,8 @@ task compileNorm(type: JavaExec) {
     args "${rootProject.rootDir}/connector/db/sql"
     args "${rootProject.rootDir}/connector/db/gen"
     args "jdbc:postgresql://localhost/kt_mn_example"
-    args "postgres"
-    args ""
+    args "johndoe"
+    args "secret"
 }
 
 compileNorm.dependsOn(":migration:run")
